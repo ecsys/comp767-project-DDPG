@@ -55,3 +55,4 @@ Homestead.json
 
 .ipynb_checkpoints/
 .vscode/
+__pycache__
