@@ -9,7 +9,6 @@ class StockEnv(gym.Env):
 
     def __init__(self, tickers, train_start_date, start_balance):
 
-
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
                 "CVX","DWDP","XOM","GS","HD",
@@ -32,21 +31,28 @@ class StockEnv(gym.Env):
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock),
                       'balance': 0}
-        self.action = np.zeros(self.n_stock)
-        self.current_day = [] 
+        self.action = np.zeros(self.n_stock) # selling quantity
+        self.date_pointer = [] 
         self.reset()
 
     def step(self, action):
-        pass
-        # def get_reward(self, cur_state, action, next_state):
+        assert self.is_valid_action(action)
+
+        next_state = self.load_next_day_state(action)
+        next_total = self.get_market_value(next_state)
+
+        # move one day forward
+        self.date_pointer = [date + 1 for date in self.date_pointer]
+        
+        return next_total # is reward the portfolio value?
 
     def reset(self):
         
-        self.current_day = self.get_index_from_date(self.train_start_date)
+        self.date_pointer = self.get_index_from_date(self.train_start_date)
 
         prices = []
         for idx, ticker in enumerate(self.tickers):
-            ticker_row_idx = self.current_day[idx]
+            ticker_row_idx = self.date_pointer[idx]
             prices.append(self.stock_data[ticker].iloc[ticker_row_idx]['open'])
         self.state['price'] = np.array(prices)
         self.state['holding'] = np.zeros(self.n_stock)
@@ -65,8 +71,33 @@ class StockEnv(gym.Env):
             stock_data[ticker] = data
         return stock_data
 
-    def load_next_day_state(self):
-        pass
+    def load_next_day_state(self, action):
+        date_pointer = self.date_pointer.copy()
+        next_date_pointer = [date + 1 for date in date_pointer]
+
+        next_price = []
+        for idx, ticker in enumerate(self.tickers):
+            ticker_row_idx = next_date_pointer[idx]
+            next_price.append(self.stock_data[ticker].iloc[ticker_row_idx]['open'])
+        next_price = np.array(next_price)
+
+        next_holding = self.state['holding'] - action
+
+        next_balance = self.state['balance']
+        for idx, action_amt in enumerate(action):
+            next_balance += self.state['price'][idx] * action_amt
+
+        next_state = {'price': next_price,
+                      'holding': next_holding,
+                      'balance': next_balance}
+        return next_state        
+
+    def get_market_value(self, state):
+        market_value = 0
+        for idx, holding_amt in enumerate(state['holding']):
+            market_value += holding_amt * state['price'][idx]
+        total = market_value + state['balance']
+        return total
 
     def get_index_from_date(self, date):
         stock_date_index = []
@@ -95,11 +126,3 @@ class StockEnv(gym.Env):
 
         return valid_action
         
-        
-
-        
-
-    
-    
-
-
