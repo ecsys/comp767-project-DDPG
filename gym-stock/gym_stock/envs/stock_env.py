@@ -31,20 +31,25 @@ class StockEnv(gym.Env):
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock),
                       'balance': 0}
+        self.state_space_size = self.n_stock*2+1
         self.action = np.zeros(self.n_stock) # selling quantity
-        self.date_pointer = [] 
+        self.action_space_size = self.n_stock
+        self.date_pointer = []
+        self.done = False
         self.reset()
 
     def step(self, action):
         assert self.is_valid_action(action)
-
+        self.action = action
+        curr_total = self.get_market_value(self.state)
         next_state = self.load_next_day_state(action)
         next_total = self.get_market_value(next_state)
-
+        self.state = next_state
+        reward = curr_total - next_total
         # move one day forward
         self.date_pointer = [date + 1 for date in self.date_pointer]
         
-        return next_total # is reward the portfolio value?
+        return self.state,reward,self.done # is reward the portfolio value?
 
     def reset(self):
         
@@ -59,6 +64,7 @@ class StockEnv(gym.Env):
         self.state['balance'] = self.start_balance
 
         self.action = np.zeros(self.n_stock)
+        return self.state
 
     def render(self):
         pass
