@@ -31,9 +31,12 @@ class StockEnv(gym.Env):
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock),
                       'balance': 0}
-        self.state_space_size = self.n_stock*2+1
+
         self.action = np.zeros(self.n_stock) # selling quantity
-        self.action_space_size = self.n_stock
+        self.action_space = np.zeros((self.n_stock,2))
+        self.state_space = np.zeros((self.n_stock,2))
+        #TODO action space :for each stock the max amount we can sell to max amount we can buy
+        #TODO state space: for price holding balance -inf to inf??
         self.date_pointer = []
         self.done = False
         self.reset()
