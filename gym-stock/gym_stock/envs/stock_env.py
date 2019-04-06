@@ -79,6 +79,7 @@ class StockEnv(gym.Env):
         self.state['balance'] = self.start_balance
 
         self.action = np.zeros(self.n_stock)
+        self.action_space = np.zeros((self.n_stock,2))
         return self.state
 
     def render(self):
