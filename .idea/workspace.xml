@@ -2,13 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3788e9c7-60b5-4e69-83f4-08f5422e1c9b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/DDPG.py" beforeDir="false" afterPath="$PROJECT_DIR$/DDPG.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generateNoise.py" beforeDir="false" afterPath="$PROJECT_DIR$/generateNoise.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gym-stock/gym_stock.egg-info/requires.txt" beforeDir="false" afterPath="$PROJECT_DIR$/gym-stock/gym_stock.egg-info/requires.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gym-stock/gym_stock/envs/stock_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gym-stock/gym_stock/envs/stock_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gym-stock/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/gym-stock/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyperparameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/hyperparameters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -36,10 +29,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
+            <state relative-caret-position="396">
+              <caret line="22" column="17" lean-forward="true" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#1#22#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -130,9 +123,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1484" />
-    <option name="width" value="1526" />
-    <option name="height" value="1930" />
+    <option name="x" value="-14" />
+    <option name="y" value="-14" />
+    <option name="width" value="2026" />
+    <option name="height" value="2946" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -198,16 +192,6 @@
               <item name="Anaconda3" type="462c0819:PsiDirectoryNode" />
               <item name="Lib" type="462c0819:PsiDirectoryNode" />
               <item name="site-packages" type="462c0819:PsiDirectoryNode" />
-              <item name="torch" type="462c0819:PsiDirectoryNode" />
-              <item name="nn" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="comp767-final" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.6.1 (C:\ProgramData\Anaconda3\python.exe) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="Anaconda3" type="462c0819:PsiDirectoryNode" />
-              <item name="Lib" type="462c0819:PsiDirectoryNode" />
-              <item name="site-packages" type="462c0819:PsiDirectoryNode" />
               <item name="torchvision" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -235,15 +219,6 @@
               <item name="comp767-final" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
               <item name="&lt; Python 3.6.1 (C:\ProgramData\Anaconda3\python.exe) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="Lib" type="462c0819:PsiDirectoryNode" />
-              <item name="site-packages" type="462c0819:PsiDirectoryNode" />
-              <item name="torch" type="462c0819:PsiDirectoryNode" />
-              <item name="nn" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="comp767-final" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.6.1 (C:\ProgramData\Anaconda3\python.exe) &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="site-packages" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -252,14 +227,6 @@
               <item name="&lt; Python 3.6.1 (C:\ProgramData\Anaconda3\python.exe) &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="site-packages" type="462c0819:PsiDirectoryNode" />
               <item name="torch" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="comp767-final" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.6.1 (C:\ProgramData\Anaconda3\python.exe) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="site-packages" type="462c0819:PsiDirectoryNode" />
-              <item name="torch" type="462c0819:PsiDirectoryNode" />
-              <item name="nn" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -346,12 +313,12 @@
       <updated>1554492472892</updated>
       <workItem from="1554492485131" duration="17927000" />
       <workItem from="1554581912668" duration="2964000" />
-      <workItem from="1554601013124" duration="13937000" />
+      <workItem from="1554601013124" duration="15637000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="34828000" />
+    <option name="totallyTimeSpent" value="36528000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1513" height="973" extended-state="6" />
@@ -368,11 +335,11 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49833" weight="0.31666666" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" sideWeight="0.49965587" weight="0.32885087" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="8" sideWeight="0.49965587" visible="true" weight="0.3276492" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.18236473" side_tool="true" weight="0.29642856" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49766198" weight="0.32841328" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="12" sideWeight="0.8176353" visible="true" weight="0.499391" />
+      <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.8176353" weight="0.499391" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -559,16 +526,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/stock_env.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="50">
-          <caret line="47" column="30" selection-start-line="47" selection-start-column="30" selection-end-line="47" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -589,12 +546,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/stock_env.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="50">
+          <caret line="47" column="30" selection-start-line="47" selection-start-column="30" selection-end-line="47" selection-end-column="30" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
+        <state relative-caret-position="396">
+          <caret line="22" column="17" lean-forward="true" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#1#22#0" expanded="true" />
           </folding>
         </state>
       </provider>
