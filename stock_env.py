@@ -31,7 +31,7 @@ class StockEnv(gym.Env):
         
         # initialize state, action, and date indices
         self.state = {'price': np.zeros(self.n_stock),
-                      'holding': np.zeros(self.n_stock),
+                      'holding': np.zeros(self.n_stock, dtype=np.int64),
                       'balance': 0}
 
         self.action = np.zeros(self.n_stock) # selling quantity
@@ -77,7 +77,7 @@ class StockEnv(gym.Env):
             ticker_row_idx = self.date_pointer[idx]
             prices.append(self.stock_data[ticker].iloc[ticker_row_idx]['open'])
         self.state['price'] = np.array(prices)
-        self.state['holding'] = np.zeros(self.n_stock)
+        self.state['holding'] = np.zeros(self.n_stock, dtype=np.int64)
         self.state['balance'] = self.start_balance
 
         self.action = np.zeros(self.n_stock)
@@ -97,7 +97,7 @@ class StockEnv(gym.Env):
             max_buy = math.floor(balance / price)
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
-        return np.array(action_space)
+        return np.array(action_space, dtype=np.int64)
 
     def load_data(self, data_dir, stocks):
         stock_data = {}

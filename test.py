@@ -26,11 +26,11 @@ for eposide in range(100):
     step_num = 0
     while not done:
         step_num += 1
+        noise.set_action_space(env.action_space)
+        
         action = agent.sample_action(state)
         action = noise.get_action(action=action)
-
         action = trade_one_stock(np.array([int(a) for a in action]))
-
         new_state, reward, done = env.step(action)
         agent.memory.push(state, action, reward, new_state, done)
         if agent.memory.check_full():
