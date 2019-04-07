@@ -43,3 +43,5 @@ for eposide in range(100):
             print('eposide: {}, reward: {}'.format(eposide, reward))
             break
     rewards.append(episode_reward)
+	if eposide%5 == 0:
+        agent.save()

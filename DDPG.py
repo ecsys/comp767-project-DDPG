@@ -66,3 +66,37 @@ class DDPG:
 
         for target_param, param in zip(self.target_critic.parameters(), self.critic_net.parameters()):
             target_param.data.copy_(param.data * self.tau + target_param.data * (1.0 - self.tau))
+			
+	def save(self):
+        torch.save({
+            'model_state_dict': self.actor_net.state_dict(),
+            'optimizer_state_dict': self.actor_optim.state_dict()
+
+        }, ACTOR_PATH)
+        torch.save({
+            'model_state_dict': self.critic_net.state_dict(),
+            'optimizer_state_dict': self.critic_net.state_dict(),
+            'loss': self.critic_loss
+        }, CRITIC_PATH)
+        torch.save({
+            'model_state_dict': self.target_actor.state_dict(),
+
+        }, ACTOR_TARGET_PATH)
+        torch.save({
+            'model_state_dict': self.target_critic.state_dict(),
+        }, CRITIC_TARGET_PATH)
+    def load(self):
+
+        actor_checkpoint = torch.load(ACTOR_PATH)
+        self.actor_net.load_state_dict(actor_checkpoint['model_state_dict'])
+        self.actor_optim.load_state_dict(actor_checkpoint['optimizer_state_dict'])
+        critic_checkpoint = torch.load(CRITIC_PATH)
+        self.critic_net.load_state_dict(critic_checkpoint['model_state_dict'])
+        self.critic_net.load_state_dict(critic_checkpoint['optimizer_state_dict'])
+        self.critic_loss = critic_checkpoint['loss']
+
+        actor_target_checkpoint = torch.load(ACTOR_TARGET_PATH)
+        self.target_actor.load_state_dict(actor_target_checkpoint['model_state_dict'])
+
+        critic_target_checkpoint = torch.load(CRITIC_TARGET_PATH)
+        self.target_critic.load_state_dict(critic_target_checkpoint['model_state_dict'])
