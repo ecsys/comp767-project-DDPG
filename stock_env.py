@@ -7,7 +7,7 @@ from gym.utils import seeding
 
 class StockEnv(gym.Env):
 
-    def __init__(self,train_start_date='1998-01-02', train_end_date='2019-04-01', start_balance=1000000):
+    def __init__(self,train_start_date='2000-01-03', train_end_date='2019-04-01', start_balance=1000000):
 
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
@@ -15,7 +15,7 @@ class StockEnv(gym.Env):
                 "IBM","INTC","JNJ","KO","JPM",
                 "MCD","MMM","MRK","MSFT","NKE",
                 "PFE","PG","TRV","UNH","UTX",
-                "VZ","V","WBA","WMT","DIS"]
+                "VZ","WBA","WMT","DIS"]
         
         data_dir = 'data/'
 
@@ -36,7 +36,7 @@ class StockEnv(gym.Env):
 
         self.action = np.zeros(self.n_stock) # selling quantity
         self.action_space = np.zeros((self.n_stock,2))
-
+        self.state_space_size = self.n_stock*2+1
         self.state_space = np.zeros((self.n_stock,2))
         #TODO state space: for price holding balance -inf to inf??
         self.date_pointer = []
@@ -44,7 +44,8 @@ class StockEnv(gym.Env):
         self.reset()
 
     def step(self, action):
-        assert self.is_valid_action(action)
+        if not self.is_valid_action(action):
+            return self.state, 0.0, self.done
 
         self.action = action
         curr_total = self.get_market_value(self.state)
@@ -53,6 +54,7 @@ class StockEnv(gym.Env):
         reward = next_total - curr_total
 
         self.action_space = self.get_action_space(next_state)
+
         self.state = next_state
 
         # move one day forward
@@ -106,7 +108,8 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        assert self.is_valid_action(action)
+        if not self.is_valid_action(action):
+            return self.state
 
         date_pointer = self.date_pointer.copy()
         next_date_pointer = [date + 1 for date in date_pointer]

@@ -1,9 +1,10 @@
 import gym
-import numpy as np
 from DDPG import DDPG
 from generateNoise import OUNoise
+import gym_stock
 from hyperparameters import *
-env = gym.make('stock-v0')
+from stock_env import *
+env = StockEnv()
 rewards = []
 agent = DDPG(env)
 noise = OUNoise(env.action_space)

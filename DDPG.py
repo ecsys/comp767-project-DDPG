@@ -1,19 +1,19 @@
 from copy import deepcopy
-from torch.autograd import Variable
+import torch.autograd
 from generateNoise import OUNoise
 from hyperparameters import *
 from memory import *
 from models import *
-
-
+import torch.optim as optim
+import torch.nn as nn
 class DDPG:
     def __init__(self, env, actor_lr=1e-4, critic_lr=1e-4, tau=TAU, discount_rate=0.99, memory_size=MEMORY_SIZE):
         self.state_num = env.state_space_size
-        self.action_num = env.action_space_size
+        self.action_num = env.action_space.shape[0]
         self.gamma = discount_rate
         self.tau = tau
         self.actor_net = Actor(self.state_num, self.action_num)
-        self.critic_net = Critic(self.state_num + self.action_num, self.action_num)
+        self.critic_net = Critic(self.state_num + self.action_num, 1)
         self.target_actor = deepcopy(self.actor_net)
         self.target_critic = deepcopy(self.critic_net)
         self.actor_optim = optim.Adam(self.actor_net.parameters(), lr=actor_lr)
@@ -23,15 +23,25 @@ class DDPG:
         self.memory = Memory(memory_size)
 
     def sample_action(self, state):
-        state = np.concatenate([state['price'],state['holding'],state['balance']])
-        state = Variable(torch.from_numpy(state).float().unsqueeze(0))
+        state = np.concatenate([state['price'],state['holding'],[state['balance']]])
+        state = torch.from_numpy(state).float().unsqueeze(0)
         action = self.actor_net.forward(state)
-        action = action.detach().numpy()[0, 0]
-        action = self.noise.get_action(action)
+        action = action.data.numpy()[0, 0]
+
         return action
 
     def update(self, batch_size=BATCH_SIZE):
         state_list, action_list, reward_list, next_state_list, done_list = self.memory.sample(batch_size)
+        states = []
+        for state in state_list:
+            s = np.concatenate([state['price'],state['holding'],[state['balance']]])
+            states.append(s)
+        state_list = np.array(states)
+        next_states = []
+        for next_state in next_state_list:
+            s = np.concatenate([next_state['price'], next_state['holding'], [next_state['balance']]])
+            next_states.append(s)
+        next_state_list = np.array(next_states)
         action_list = torch.FloatTensor(action_list)
         reward_list = torch.FloatTensor(reward_list)
         state_list = torch.FloatTensor(state_list)
