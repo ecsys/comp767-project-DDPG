@@ -3,6 +3,18 @@ from generateNoise import OUNoise
 from hyperparameters import *
 from stock_env import *
 
+def trade_one_stock(action):
+    sell = max(action)
+    buy = min(action)
+    if abs(sell) > abs(buy):
+        argidx = np.argmax(action)
+    else:
+        argidx = np.argmin(action)
+    for i in range(len(action)):
+        if i != argidx:
+            action[i] = 0
+    return action
+
 env = StockEnv()
 rewards = []
 agent = DDPG(env)
@@ -16,6 +28,9 @@ for eposide in range(100):
         step_num += 1
         action = agent.sample_action(state)
         action = noise.get_action(action=action)
+
+        action = trade_one_stock(np.array([int(a) for a in action]))
+
         new_state, reward, done = env.step(action)
         agent.memory.push(state, action, reward, new_state, done)
         if agent.memory.check_full():

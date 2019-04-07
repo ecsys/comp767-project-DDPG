@@ -7,7 +7,7 @@ from gym.utils import seeding
 
 class StockEnv(gym.Env):
 
-    def __init__(self,train_start_date='2000-01-03', train_end_date='2019-04-01', start_balance=1000000):
+    def __init__(self,train_start_date='2000-01-03', train_end_date='2019-04-01', start_balance=100000):
 
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
@@ -46,7 +46,7 @@ class StockEnv(gym.Env):
     def step(self, action):
         if not self.is_valid_action(action):
             return self.state, 0.0, self.done
-
+        
         self.action = action
         curr_total = self.get_market_value(self.state)
         next_state = self.load_next_day_state(action)
@@ -58,7 +58,7 @@ class StockEnv(gym.Env):
         self.state = next_state
 
         # move one day forward
-        self.date_pointer = [date + 1 for date in self.date_pointer]
+        self.date_pointer = [date - 1 for date in self.date_pointer]
 
         # done if passed train_end_date
         date = self.get_date_from_index(self.date_pointer[0])
@@ -112,7 +112,7 @@ class StockEnv(gym.Env):
             return self.state
 
         date_pointer = self.date_pointer.copy()
-        next_date_pointer = [date + 1 for date in date_pointer]
+        next_date_pointer = [date - 1 for date in date_pointer]
 
         next_price = []
         for idx, ticker in enumerate(self.tickers):
@@ -158,10 +158,12 @@ class StockEnv(gym.Env):
             # cannot sell or buy partial stock
             if not isinstance(action[i], np.int64):
                 valid_action = False
+                print("invalid action 1")
                 break
             # cannot sell more than you have, no short operation allowed
             if not self.state['holding'][i] >= action[i]:
                 valid_action = False
+                print("invalid action 2")
                 break
             if action[i] < 0:
                 amount_required += abs(action[i]) * self.state['price'][i]
@@ -171,6 +173,7 @@ class StockEnv(gym.Env):
         #cannot spend more money than you have to buy stocks
         if amount_required > self.state['balance'] + amount_gain:
             valid_action = False
+            print("invalid action 3")
 
         return valid_action
         
