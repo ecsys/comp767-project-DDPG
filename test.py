@@ -46,3 +46,5 @@ for eposide in range(100):
             break
     test_actor('2017-04-03', '2019-04-01', agent)
     rewards.append(episode_reward)
+    if eposide%5 == 0:
+        agent.save()
