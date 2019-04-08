@@ -67,7 +67,7 @@ class DDPG:
         for target_param, param in zip(self.target_critic.parameters(), self.critic_net.parameters()):
             target_param.data.copy_(param.data * self.tau + target_param.data * (1.0 - self.tau))
 			
-	def save(self):
+    def save(self):
         torch.save({
             'model_state_dict': self.actor_net.state_dict(),
             'optimizer_state_dict': self.actor_optim.state_dict()
