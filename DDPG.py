@@ -26,7 +26,7 @@ class DDPG:
         state = np.concatenate([state['price'],state['holding'],[state['balance']]])
         state = torch.from_numpy(state).float().unsqueeze(0)
         action = self.actor_net.forward(state)
-        action = action.data.numpy()[0, 0]
+        action = action.data.numpy()[0]
 
         return action
 

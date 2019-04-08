@@ -7,7 +7,7 @@ from gym.utils import seeding
 
 class StockEnv(gym.Env):
 
-    def __init__(self,train_start_date='2000-01-03', train_end_date='2019-04-01', start_balance=100000):
+    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000):
 
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
@@ -19,12 +19,14 @@ class StockEnv(gym.Env):
         
         data_dir = 'data/'
 
-        self.train_start_date = train_start_date
-        self.train_end_date = train_end_date
+        self.start_date = start_date
+        self.end_date = end_date
         self.n_stock = len(tickers)
         self.tickers = tickers
         self.start_balance = start_balance
         self.data_dir =data_dir
+        self.transaction_fee = 5
+        self.threshold = 1000
 
         # read all data into memory when initializing
         self.stock_data = self.load_data(data_dir, tickers)
@@ -44,8 +46,7 @@ class StockEnv(gym.Env):
         self.reset()
 
     def step(self, action):
-        if not self.is_valid_action(action):
-            return self.state, 0.0, self.done
+        action = self.clip_action(action)
         
         self.action = action
         curr_total = self.get_market_value(self.state)
@@ -60,17 +61,22 @@ class StockEnv(gym.Env):
         # move one day forward
         self.date_pointer = [date - 1 for date in self.date_pointer]
 
-        # done if passed train_end_date
+        # done if passed end_date
         date = self.get_date_from_index(self.date_pointer[0])
-        if date >= self.train_end_date:
+        if date >= self.end_date:
             self.done = True
+
+        # calculate transaction fee
+        for a in action:
+            if a != 0:
+                reward -= self.transaction_fee
         
         return self.state, reward, self.done 
 
     def reset(self):
         
         self.done = False
-        self.date_pointer = self.get_index_from_date(self.train_start_date)
+        self.date_pointer = self.get_index_from_date(self.start_date)
 
         prices = []
         for idx, ticker in enumerate(self.tickers):
@@ -81,7 +87,6 @@ class StockEnv(gym.Env):
         self.state['balance'] = self.start_balance
 
         self.action = np.zeros(self.n_stock)
-        # self.action_space = np.zeros((self.n_stock,2))
         self.action_space = self.get_action_space(self.state)
         return self.state
 
@@ -108,8 +113,7 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        if not self.is_valid_action(action):
-            return self.state
+        action = self.clip_action(action)
 
         date_pointer = self.date_pointer.copy()
         next_date_pointer = [date - 1 for date in date_pointer]
@@ -158,12 +162,12 @@ class StockEnv(gym.Env):
             # cannot sell or buy partial stock
             if not isinstance(action[i], np.int64):
                 valid_action = False
-                print("invalid action 1")
+                #print("invalid action 1")
                 break
             # cannot sell more than you have, no short operation allowed
             if not self.state['holding'][i] >= action[i]:
                 valid_action = False
-                print("invalid action 2")
+                #print("invalid action 2")
                 break
             if action[i] < 0:
                 amount_required += abs(action[i]) * self.state['price'][i]
@@ -173,7 +177,34 @@ class StockEnv(gym.Env):
         #cannot spend more money than you have to buy stocks
         if amount_required > self.state['balance'] + amount_gain:
             valid_action = False
-            print("invalid action 3")
+            #print("invalid action 3")
 
         return valid_action
+    
+    def clip_action(self, action):
+
+        prices = self.state['price']
+        holdings = self.state['holding']
+
+        # cut small amount transactions
+        for idx, _action in enumerate(action):
+            if _action == holdings[idx]:
+                continue
+            if abs(_action) * prices[idx] < self.threshold:
+                action[idx] = 0
+                #print("action cut 1")
+
+        if self.is_valid_action(action):
+            return action
         
+        while(not self.is_valid_action(action)):
+            action = action * 0.9
+            action = action.astype(np.int64)
+            for idx, _action in enumerate(action):
+                if _action == holdings[idx]:
+                    continue
+                if abs(_action) * prices[idx] < self.threshold:
+                    action[idx] = 0
+                    #print("action cut 2")
+        
+        return action
