@@ -1,10 +1,11 @@
 import numpy as np
+from hyperparameters import *
 """
 Taken from https://github.com/vitchyr/rlkit/blob/master/rlkit/exploration_strategies/ou_strategy.py
 """
 
 class OUNoise(object):
-    def __init__(self, action_space, mu=0.0, theta=0.15, max_sigma=0.3, min_sigma=0.3, decay_period=100000):
+    def __init__(self, action_space, mu=0.0, theta=0.15, max_sigma=SIGMA, min_sigma=0, decay_period=3000):
         self.mu = mu
         self.theta = theta
         self.sigma = max_sigma
@@ -27,7 +28,7 @@ class OUNoise(object):
 
     def get_action(self, action, t=0):
         ou_state = self.evolve_state()
-        self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * min(1.0, t / self.decay_period)
+        self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * max(min(1.0, t / self.decay_period),0)
         return np.clip(action + ou_state, self.low, self.high)
     
     def set_action_space(self, action_space):

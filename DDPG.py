@@ -7,7 +7,7 @@ from models import *
 import torch.optim as optim
 import torch.nn as nn
 class DDPG:
-    def __init__(self, env, actor_lr=1e-4, critic_lr=1e-4, tau=TAU, discount_rate=0.99, memory_size=MEMORY_SIZE):
+    def __init__(self, env, actor_lr=ACTOR_LR, critic_lr=CRITIC_LR, tau=TAU, discount_rate=DISCOUNT_RATE, memory_size=MEMORY_SIZE):
         self.state_num = env.state_space_size
         self.action_num = env.action_space.shape[0]
         self.gamma = discount_rate

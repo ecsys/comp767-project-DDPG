@@ -8,7 +8,7 @@ from scipy.special import softmax
 
 class StockEnv(gym.Env):
 
-    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0, threshold=1000):
+    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0, threshold=0):
 
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
@@ -72,7 +72,7 @@ class StockEnv(gym.Env):
             if a != 0:
                 reward -= self.transaction_fee
         
-        return self.state, reward, self.done 
+        return self.state, reward, self.done, action
 
     def reset(self):
         
