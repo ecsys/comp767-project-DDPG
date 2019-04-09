@@ -4,7 +4,7 @@ import pandas as pd
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from scipy.special import softmax
+# from scipy.special import softmax
 
 class StockEnv(gym.Env):
 
@@ -35,23 +35,25 @@ class StockEnv(gym.Env):
         # initialize state, action, and date indices
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock, dtype=np.int64),
+                      'volume':np.zeros(self.n_stock),
                       'balance': 0}
 
         self.action = np.zeros(self.n_stock) # selling quantity
         self.action_space = np.zeros((self.n_stock,2))
-        self.state_space_size = self.n_stock*2+1
-        self.state_space = np.zeros((self.n_stock,2))
+        self.state_space_size = self.n_stock*3+1
+        # self.state_space = np.zeros((self.n_stock,3))
         #TODO state space: for price holding balance -inf to inf??
         self.date_pointer = []
         self.done = False
         self.reset()
 
     def step(self, action):
-        action = self.clip_action(action)
-        
-        self.action = action
+        # if self.is_valid_action(action) != 0:
+        #     action = self.clip_action(action)
+
         curr_total = self.get_market_value(self.state)
         next_state = self.load_next_day_state(action)
+        self.action = action
         next_total = self.get_market_value(next_state)
         reward = next_total - curr_total
 
@@ -86,7 +88,7 @@ class StockEnv(gym.Env):
         self.state['price'] = np.array(prices)
         self.state['holding'] = np.zeros(self.n_stock, dtype=np.int64)
         self.state['balance'] = self.start_balance
-
+        self.state['volume'] = np.zeros(self.n_stock, dtype=np.int64)
         self.action = np.zeros(self.n_stock)
         self.action_space = self.get_action_space(self.state)
         return self.state
@@ -101,7 +103,7 @@ class StockEnv(gym.Env):
         balance = state['balance']
         for idx, price in enumerate(prices):
             # max_buy = math.floor(balance / price)
-            max_buy = 100
+            max_buy = 10000
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
         return np.array(action_space, dtype=np.int64)
@@ -115,25 +117,28 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        action = self.clip_action(action)
-
         date_pointer = self.date_pointer.copy()
         next_date_pointer = [date - 1 for date in date_pointer]
-
+        volume = []
         next_price = []
         for idx, ticker in enumerate(self.tickers):
             ticker_row_idx = next_date_pointer[idx]
             next_price.append(self.stock_data[ticker].iloc[ticker_row_idx]['open'])
+            volume.append(self.stock_data[ticker].iloc[ticker_row_idx]['volume'])
         next_price = np.array(next_price)
+        volume = np.array(volume)
+        self.state['price'] = next_price.copy()
+        self.state['volume'] = volume.copy()
 
+        action = self.clip_action(action)
         next_holding = self.state['holding'] - action
-
         next_balance = self.state['balance']
         for idx, action_amt in enumerate(action):
             next_balance += self.state['price'][idx] * action_amt
 
         next_state = {'price': next_price,
-                      'holding': next_holding,
+                      'holding': next_holding.copy(),
+                      'volume':volume,
                       'balance': next_balance}
         return next_state        
 
@@ -167,7 +172,7 @@ class StockEnv(gym.Env):
                 # print("invalid action 1")
                 break
             # cannot sell more than you have, no short operation allowed
-            if not self.state['holding'][i] >= action[i]:
+            if self.state['holding'][i] < action[i]:
                 valid_action = 2
                 # print("invalid action 2")
                 break
@@ -188,28 +193,36 @@ class StockEnv(gym.Env):
         prices = self.state['price']
         holdings = self.state['holding']
         balance = self.state['balance']
+        for i in range(len(action)):
+            if action[i] >= holdings[i]:
+                action[i] = holdings[i]
 
-        # cut small amount transactions
-        for idx, _action in enumerate(action):
-            if _action == holdings[idx]:
-                continue
-            if abs(_action) * prices[idx] < self.threshold:
-                action[idx] = 0
-
-        validity_code = self.is_valid_action(action)
-        if  validity_code== 0:
-            return action
-
-        while (validity_code != 0):
-            if validity_code == 3:
-                action = np.where(action<0, action*0.9, action)
-                action = action.astype(np.int64)
-            elif validity_code == 2:
-                for i in range(len(self.tickers)):
-                    if holdings[i] < action[i]:
-                        action[i] = holdings[i]
-            validity_code = self.is_valid_action(action)
- 
+        total = -1*np.sum(action * prices)
+        if total > balance:
+            ratio = balance/total
+            action = action.astype(np.float)
+            action *= ratio
+            action = np.floor(action).astype(np.int)
+        return action
+        # # cut small amount transactions
+        # for idx, _action in enumerate(action):
+        #     if _action == holdings[idx]:
+        #         continue
+        # 
+        # validity_code = self.is_valid_action(action)
+        # if  validity_code== 0:
+        #     return action
+        # 
+        # while (validity_code != 0):
+        #     if validity_code == 3:
+        #         action = np.where(action<0, action*0.9, action)
+        #         action = action.astype(np.int64)
+        #     elif validity_code == 2:
+        #         for i in range(len(self.tickers)):
+        #             if holdings[i] < action[i]:
+        #                 action[i] = holdings[i]
+        #     validity_code = self.is_valid_action(action)
+        # 
         # amount_delta = 0
         # for idx, _action in enumerate(action):
         #     amount_delta += _action * prices[idx]
@@ -234,4 +247,4 @@ class StockEnv(gym.Env):
         # alpha = balance/normalized_amount
         # action = (action * alpha).astype(np.int64)
 
-        return action
+        # return action

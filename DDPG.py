@@ -23,7 +23,7 @@ class DDPG:
         self.memory = Memory(memory_size)
 
     def sample_action(self, state):
-        state = np.concatenate([state['price'],state['holding'],[state['balance']]])
+        state = np.concatenate([state['price'],state['holding'],state['volume'],[state['balance']]])
         state = torch.from_numpy(state).float().unsqueeze(0)
         action = self.actor_net.forward(state)
         action = action.data.numpy()[0]
@@ -34,12 +34,12 @@ class DDPG:
         state_list, action_list, reward_list, next_state_list, done_list = self.memory.sample(batch_size)
         states = []
         for state in state_list:
-            s = np.concatenate([state['price'],state['holding'],[state['balance']]])
+            s = np.concatenate([state['price'],state['holding'],state['volume'],[state['balance']]])
             states.append(s)
         state_list = np.array(states)
         next_states = []
         for next_state in next_state_list:
-            s = np.concatenate([next_state['price'], next_state['holding'], [next_state['balance']]])
+            s = np.concatenate([next_state['price'], next_state['holding'], next_state['volume'],[next_state['balance']]])
             next_states.append(s)
         next_state_list = np.array(next_states)
         action_list = torch.FloatTensor(action_list)

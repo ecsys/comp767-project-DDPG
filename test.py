@@ -38,7 +38,7 @@ for eposide in range(100):
         state = new_state
         episode_reward += reward
         if step_num % 500 == 0:
-            print('eposide: {}, step: {}, reward: {}'.format(eposide, step_num, reward))
+            print('eposide: {}, step: {}, reward: {}'.format(eposide, step_num, episode_reward))
         if done:
             print('eposide: {}, reward: {}'.format(eposide, episode_reward))
             break
