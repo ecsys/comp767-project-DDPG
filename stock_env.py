@@ -101,7 +101,7 @@ class StockEnv(gym.Env):
         balance = state['balance']
         for idx, price in enumerate(prices):
             # max_buy = math.floor(balance / price)
-            max_buy = 10000
+            max_buy = 100
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
         return np.array(action_space, dtype=np.int64)
@@ -157,19 +157,19 @@ class StockEnv(gym.Env):
         return date
 
     def is_valid_action(self, action):
-        valid_action = True
+        valid_action = 0
         amount_required = 0
         amount_gain = 0
         for i in range(len(self.tickers)):
             # cannot sell or buy partial stock
             if not isinstance(action[i], np.int64):
-                valid_action = False
-                #print("invalid action 1")
+                valid_action = 1
+                # print("invalid action 1")
                 break
             # cannot sell more than you have, no short operation allowed
             if not self.state['holding'][i] >= action[i]:
-                valid_action = False
-                #print("invalid action 2")
+                valid_action = 2
+                # print("invalid action 2")
                 break
             if action[i] < 0:
                 amount_required += abs(action[i]) * self.state['price'][i]
@@ -178,8 +178,8 @@ class StockEnv(gym.Env):
 
         #cannot spend more money than you have to buy stocks
         if amount_required > self.state['balance'] + amount_gain:
-            valid_action = False
-            #print("invalid action 3")
+            valid_action = 3
+            # print("invalid action 3")
 
         return valid_action
     
@@ -189,54 +189,49 @@ class StockEnv(gym.Env):
         holdings = self.state['holding']
         balance = self.state['balance']
 
-        if self.is_valid_action(action):
-            # cut small amount transactions
-            for idx, _action in enumerate(action):
-                if _action == holdings[idx]:
-                    continue
-                if abs(_action) * prices[idx] < self.threshold:
-                    action[idx] = 0
-            return action
-
-        # print(action)
-        
-        # amount_delta = 0
-        # for idx, _action in enumerate(action):
-        #     amount_delta += _action * prices[idx]
-
-        # print(amount_delta)
-
-        # alpha = 1
-        # while(alpha * amount_delta + balance < 0):
-        #     alpha -= 0.01
-        
-        # print(alpha)
-
-        # action = (alpha * action).astype(np.int64)
-
-        # print(action)
-        
-
-        buy_action = np.absolute(np.where(action<0, action, 0))
-        if sum(buy_action) != 0:
-            buy_action = softmax(np.where(buy_action!=0, action, -1e10)) * -1
-        
-        sell_action = np.where(action>0, action, 0)
-        if sum(sell_action) != 0:
-            sell_action = softmax(np.where(sell_action!=0, action, -1e10))
-        action = buy_action + sell_action
-
-        normalized_amount = np.absolute(action.T.dot(prices))
-        alpha = balance/normalized_amount
-        action = (action * alpha).astype(np.int64)
-
+        # cut small amount transactions
         for idx, _action in enumerate(action):
             if _action == holdings[idx]:
                 continue
             if abs(_action) * prices[idx] < self.threshold:
                 action[idx] = 0
-    
-        while (not self.is_valid_action(action)):
-            action = (action * 0.9).astype(np.int64)
-            print("action not valid in after clipping!!!")
+
+        validity_code = self.is_valid_action(action)
+        if  validity_code== 0:
+            return action
+
+        while (validity_code != 0):
+            if validity_code == 3:
+                action = np.where(action<0, action*0.9, action)
+                action = action.astype(np.int64)
+            elif validity_code == 2:
+                for i in range(len(self.tickers)):
+                    if holdings[i] < action[i]:
+                        action[i] = holdings[i]
+            validity_code = self.is_valid_action(action)
+ 
+        # amount_delta = 0
+        # for idx, _action in enumerate(action):
+        #     amount_delta += _action * prices[idx]
+        # alpha = 1
+        # while(alpha * amount_delta + balance < 0):
+        #     alpha -= 0.01
+        # action = (alpha * action).astype(np.int64)
+        
+
+
+
+        # buy_action = np.absolute(np.where(action<0, action, 0))
+        # if sum(buy_action) != 0:
+        #     buy_action = softmax(np.where(buy_action!=0, action, -1e10)) * -1
+        
+        # sell_action = np.where(action>0, action, 0)
+        # if sum(sell_action) != 0:
+        #     sell_action = softmax(np.where(sell_action!=0, action, -1e10))
+        # action = buy_action + sell_action
+
+        # normalized_amount = np.absolute(action.T.dot(prices))
+        # alpha = balance/normalized_amount
+        # action = (action * alpha).astype(np.int64)
+
         return action
