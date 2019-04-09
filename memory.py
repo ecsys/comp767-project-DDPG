@@ -1,6 +1,6 @@
 import random
 from collections import deque
-
+from copy import deepcopy
 
 class Experience:
     def __init__(self, state, action, reward, next_state, done):

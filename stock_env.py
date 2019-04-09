@@ -117,7 +117,7 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        date_pointer = self.date_pointer.copy()
+        date_pointer = list(self.date_pointer)
         next_date_pointer = [date - 1 for date in date_pointer]
         volume = []
         next_price = []
@@ -133,8 +133,8 @@ class StockEnv(gym.Env):
         action = self.clip_action(action)
         next_holding = self.state['holding'] - action
         next_balance = self.state['balance']
-        for idx, action_amt in enumerate(action):
-            next_balance += self.state['price'][idx] * action_amt
+
+        next_balance += np.sum(self.state['price'] * action)
 
         next_state = {'price': next_price,
                       'holding': next_holding.copy(),
@@ -202,8 +202,12 @@ class StockEnv(gym.Env):
             ratio = balance/total
             action = action.astype(np.float)
             action *= ratio
-            action = np.floor(action).astype(np.int)
-        return action
+            for i in range(len(action)):
+                if action[i]>0:
+                    action[i] = np.floor(action[i])
+                else:
+                    action[i] = np.ceil(action[i])
+        return action.astype(np.int)
         # # cut small amount transactions
         # for idx, _action in enumerate(action):
         #     if _action == holdings[idx]:
