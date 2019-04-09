@@ -15,10 +15,7 @@ def test_actor(start_date, end_date, agent):
         total_reward += reward
     print('Test: start date {}, end-date {}, reward: {}'.format(start_date, end_date, total_reward))
 
-
-q = 0
-
-env = StockEnv()
+env = StockEnv(end_date='2017-04-03')
 rewards = []
 agent = DDPG(env)
 noise = OUNoise(env.action_space)

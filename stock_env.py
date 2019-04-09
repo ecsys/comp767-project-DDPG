@@ -4,6 +4,7 @@ import pandas as pd
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+from scipy.special import softmax
 
 class StockEnv(gym.Env):
 
@@ -99,7 +100,8 @@ class StockEnv(gym.Env):
         holdings = state['holding']
         balance = state['balance']
         for idx, price in enumerate(prices):
-            max_buy = math.floor(balance / price)
+            # max_buy = math.floor(balance / price)
+            max_buy = 10000
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
         return np.array(action_space, dtype=np.int64)
@@ -195,21 +197,46 @@ class StockEnv(gym.Env):
                 if abs(_action) * prices[idx] < self.threshold:
                     action[idx] = 0
             return action
-        
-        amount_delta = 0
-        for idx, _action in enumerate(action):
-            amount_delta += _action * prices[idx]
 
-        alpha = 1
-        while(alpha * amount_delta + balance < 0):
-            alpha -= 0.01
-
-        action = (alpha * action).astype(np.int64)
+        # print(action)
         
+        # amount_delta = 0
+        # for idx, _action in enumerate(action):
+        #     amount_delta += _action * prices[idx]
+
+        # print(amount_delta)
+
+        # alpha = 1
+        # while(alpha * amount_delta + balance < 0):
+        #     alpha -= 0.01
+        
+        # print(alpha)
+
+        # action = (alpha * action).astype(np.int64)
+
+        # print(action)
+        
+
+        buy_action = np.absolute(np.where(action<0, action, 0))
+        if sum(buy_action) != 0:
+            buy_action = softmax(np.where(buy_action!=0, action, -1e10)) * -1
+        
+        sell_action = np.where(action>0, action, 0)
+        if sum(sell_action) != 0:
+            sell_action = softmax(np.where(sell_action!=0, action, -1e10))
+        action = buy_action + sell_action
+
+        normalized_amount = np.absolute(action.T.dot(prices))
+        alpha = balance/normalized_amount
+        action = (action * alpha).astype(np.int64)
+
         for idx, _action in enumerate(action):
             if _action == holdings[idx]:
                 continue
             if abs(_action) * prices[idx] < self.threshold:
                 action[idx] = 0
     
+        while (not self.is_valid_action(action)):
+            action = (action * 0.9).astype(np.int64)
+            print("action not valid in after clipping!!!")
         return action
