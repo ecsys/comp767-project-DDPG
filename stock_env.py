@@ -7,7 +7,7 @@ from gym.utils import seeding
 
 class StockEnv(gym.Env):
 
-    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000):
+    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0, threshold=1000):
 
         # constant
         tickers = ["AXP","AAPL","BA","CAT","CSCO",
@@ -25,8 +25,8 @@ class StockEnv(gym.Env):
         self.tickers = tickers
         self.start_balance = start_balance
         self.data_dir =data_dir
-        self.transaction_fee = 5
-        self.threshold = 1000
+        self.transaction_fee = transaction_fee
+        self.threshold = threshold
 
         # read all data into memory when initializing
         self.stock_data = self.load_data(data_dir, tickers)
@@ -185,26 +185,31 @@ class StockEnv(gym.Env):
 
         prices = self.state['price']
         holdings = self.state['holding']
-
-        # cut small amount transactions
-        for idx, _action in enumerate(action):
-            if _action == holdings[idx]:
-                continue
-            if abs(_action) * prices[idx] < self.threshold:
-                action[idx] = 0
-                #print("action cut 1")
+        balance = self.state['balance']
 
         if self.is_valid_action(action):
-            return action
-        
-        while(not self.is_valid_action(action)):
-            action = action * 0.9
-            action = action.astype(np.int64)
+            # cut small amount transactions
             for idx, _action in enumerate(action):
                 if _action == holdings[idx]:
                     continue
                 if abs(_action) * prices[idx] < self.threshold:
                     action[idx] = 0
-                    #print("action cut 2")
+            return action
         
+        amount_delta = 0
+        for idx, _action in enumerate(action):
+            amount_delta += _action * prices[idx]
+
+        alpha = 1
+        while(alpha * amount_delta + balance < 0):
+            alpha -= 0.01
+
+        action = (alpha * action).astype(np.int64)
+        
+        for idx, _action in enumerate(action):
+            if _action == holdings[idx]:
+                continue
+            if abs(_action) * prices[idx] < self.threshold:
+                action[idx] = 0
+    
         return action
