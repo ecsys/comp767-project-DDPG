@@ -29,8 +29,8 @@ class OUNoise(object):
     def get_action(self, action, t=0):
         ou_state = self.evolve_state()
         self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * max(min(1.0, t / self.decay_period),0)
-        return np.clip(action + ou_state, self.low, self.high)
-    
+        # return np.clip(action + ou_state, self.low, self.high)
+        return action +ou_state
     def set_action_space(self, action_space):
         self.low = action_space[:,0]
         self.high = action_space[:,1]

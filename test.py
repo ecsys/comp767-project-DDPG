@@ -32,7 +32,7 @@ for eposide in range(100):
         action = noise.get_action(action=action, t=step_num)
         action = np.array(action, dtype=np.int64)
         new_state, reward, done, clipped_action = env.step(action)
-        agent.memory.push(state, action, reward, new_state, done)
+        agent.memory.push(state, clipped_action, reward, new_state, done)
         if agent.memory.check_full():
             agent.update(BATCH_SIZE)
         state = new_state

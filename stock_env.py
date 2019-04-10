@@ -52,7 +52,7 @@ class StockEnv(gym.Env):
         #     action = self.clip_action(action)
 
         curr_total = self.get_market_value(self.state)
-        next_state = self.load_next_day_state(action)
+        next_state, action = self.load_next_day_state(action)
         self.action = action
         next_total = self.get_market_value(next_state)
         reward = next_total - curr_total
@@ -103,7 +103,7 @@ class StockEnv(gym.Env):
         balance = state['balance']
         for idx, price in enumerate(prices):
             # max_buy = math.floor(balance / price)
-            max_buy = 10000
+            max_buy = 100
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
         return np.array(action_space, dtype=np.int64)
@@ -140,7 +140,7 @@ class StockEnv(gym.Env):
                       'holding': next_holding.copy(),
                       'volume':volume,
                       'balance': next_balance}
-        return next_state        
+        return next_state,action
 
     def get_market_value(self, state):
         market_value = 0
@@ -193,20 +193,34 @@ class StockEnv(gym.Env):
         prices = self.state['price']
         holdings = self.state['holding']
         balance = self.state['balance']
+        validity_code = self.is_valid_action(action)
         for i in range(len(action)):
             if action[i] >= holdings[i]:
                 action[i] = holdings[i]
+        while (validity_code != 0):
+            if validity_code == 3:
+                action = np.where(action < 0, action * 0.9, action)
+                action = action.astype(np.int64)
+            elif validity_code == 2:
+                for i in range(len(self.tickers)):
+                    if holdings[i] < action[i]:
+                        action[i] = holdings[i]
+            validity_code = self.is_valid_action(action)
 
-        total = -1*np.sum(action * prices)
-        if total > balance:
-            ratio = balance/total
-            action = action.astype(np.float)
-            action *= ratio
-            for i in range(len(action)):
-                if action[i]>0:
-                    action[i] = np.floor(action[i])
-                else:
-                    action[i] = np.ceil(action[i])
+
+        # for i in range(len(action)):
+        #     if action[i] >= holdings[i]:
+        #         action[i] = holdings[i]
+        # total = -1*np.sum(action * prices)
+        # if total > balance:
+        #     ratio = balance/total
+        #     action = action.astype(np.float)
+        #     action *= ratio
+        #     for i in range(len(action)):
+        #         if action[i]>0:
+        #             action[i] = np.floor(action[i])
+        #         else:
+        #             action[i] = np.ceil(action[i])
         return action.astype(np.int)
         # # cut small amount transactions
         # for idx, _action in enumerate(action):
