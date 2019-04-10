@@ -59,8 +59,6 @@ class StockEnv(gym.Env):
 
         self.action_space = self.get_action_space(next_state)
 
-        self.state = next_state
-
         # move one day forward
         self.date_pointer = [date - 1 for date in self.date_pointer]
 
@@ -117,7 +115,16 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
+        #first trade do the action,
+        action = self.clip_action(action)
+        next_holding = self.state['holding'] - action
+        next_balance = self.state['balance']
+        next_balance += np.sum(self.state['price'] * action)
         date_pointer = list(self.date_pointer)
+        self.state['holding'] = next_holding
+        self.state['balance'] = next_balance
+
+        #then advances to the next state
         next_date_pointer = [date - 1 for date in date_pointer]
         volume = []
         next_price = []
@@ -127,20 +134,10 @@ class StockEnv(gym.Env):
             volume.append(self.stock_data[ticker].iloc[ticker_row_idx]['volume'])
         next_price = np.array(next_price)
         volume = np.array(volume)
-        self.state['price'] = next_price.copy()
-        self.state['volume'] = volume.copy()
+        self.state['price'] = next_price
+        self.state['volume'] = volume
 
-        action = self.clip_action(action)
-        next_holding = self.state['holding'] - action
-        next_balance = self.state['balance']
-
-        next_balance += np.sum(self.state['price'] * action)
-
-        next_state = {'price': next_price,
-                      'holding': next_holding.copy(),
-                      'volume':volume,
-                      'balance': next_balance}
-        return next_state,action
+        return self.state,action
 
     def get_market_value(self, state):
         market_value = 0
@@ -199,7 +196,7 @@ class StockEnv(gym.Env):
                 action[i] = holdings[i]
         while (validity_code != 0):
             if validity_code == 3:
-                action = np.where(action < 0, action * 0.9, action)
+                action = np.where(action < 0, action * 0.8, action)
                 action = action.astype(np.int64)
             elif validity_code == 2:
                 for i in range(len(self.tickers)):
