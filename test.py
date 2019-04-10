@@ -2,6 +2,7 @@ from DDPG import DDPG
 from generateNoise import OUNoise
 from hyperparameters import *
 from stock_env import *
+from create_memory import create_memory
 
 def test_actor(start_date, end_date, agent):
     test_env = StockEnv(start_date=start_date, end_date=end_date)
@@ -20,6 +21,8 @@ rewards = []
 agent = DDPG(env)
 noise = OUNoise(env.action_space)
 test_best_reward = -1e10
+
+create_memory(agent)
 for eposide in range(100):
     state = env.reset()
     episode_reward = 0

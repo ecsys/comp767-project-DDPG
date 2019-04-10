@@ -51,7 +51,7 @@ class DDPG:
         next_Qvals = self.target_critic.forward(next_state_list,next_actions)
         y = reward_list+self.gamma*next_Qvals
         critic_loss = self.critic_loss(Qvals,y)
-        policy_loss = -torch.mean(self.critic_net.forward(state_list,self.actor_net.forward(state_list)))
+        policy_loss = -1*torch.mean(self.critic_net.forward(state_list,self.actor_net.forward(state_list)))
 
         self.actor_optim.zero_grad()
         policy_loss.backward()

@@ -4,20 +4,23 @@ import pandas as pd
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+
+
 # from scipy.special import softmax
 
 class StockEnv(gym.Env):
 
-    def __init__(self,start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0, threshold=0):
+    def __init__(self, start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0,
+                 threshold=0):
 
         # constant
-        tickers = ["AXP","AAPL","BA","CAT","CSCO",
-                "CVX","DWDP","XOM","GS","HD",
-                "IBM","INTC","JNJ","KO","JPM",
-                "MCD","MMM","MRK","MSFT","NKE",
-                "PFE","PG","TRV","UNH","UTX",
-                "VZ","WBA","WMT","DIS"]
-        
+        tickers = ["AXP", "AAPL", "BA", "CAT", "CSCO",
+                   "CVX", "DWDP", "XOM", "GS", "HD",
+                   "IBM", "INTC", "JNJ", "KO", "JPM",
+                   "MCD", "MMM", "MRK", "MSFT", "NKE",
+                   "PFE", "PG", "TRV", "UNH", "UTX",
+                   "VZ", "WBA", "WMT", "DIS"]
+
         data_dir = 'data/'
 
         self.start_date = start_date
@@ -25,24 +28,24 @@ class StockEnv(gym.Env):
         self.n_stock = len(tickers)
         self.tickers = tickers
         self.start_balance = start_balance
-        self.data_dir =data_dir
+        self.data_dir = data_dir
         self.transaction_fee = transaction_fee
         self.threshold = threshold
 
         # read all data into memory when initializing
         self.stock_data = self.load_data(data_dir, tickers)
-        
+
         # initialize state, action, and date indices
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock, dtype=np.int64),
-                      'volume':np.zeros(self.n_stock),
+                      'volume': np.zeros(self.n_stock),
                       'balance': 0}
 
-        self.action = np.zeros(self.n_stock) # selling quantity
-        self.action_space = np.zeros((self.n_stock,2))
-        self.state_space_size = self.n_stock*3+1
+        self.action = np.zeros(self.n_stock)  # selling quantity
+        self.action_space = np.zeros((self.n_stock, 2))
+        self.state_space_size = self.n_stock * 3 + 1
         # self.state_space = np.zeros((self.n_stock,3))
-        #TODO state space: for price holding balance -inf to inf??
+        # TODO state space: for price holding balance -inf to inf??
         self.date_pointer = []
         self.done = False
         self.reset()
@@ -71,11 +74,11 @@ class StockEnv(gym.Env):
         for a in action:
             if a != 0:
                 reward -= self.transaction_fee
-        
+
         return self.state, reward, self.done, action
 
     def reset(self):
-        
+
         self.done = False
         self.date_pointer = self.get_index_from_date(self.start_date)
 
@@ -115,7 +118,7 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        #first trade do the action,
+        # first trade do the action,
         action = self.clip_action(action)
         next_holding = self.state['holding'] - action
         next_balance = self.state['balance']
@@ -124,7 +127,7 @@ class StockEnv(gym.Env):
         self.state['holding'] = next_holding
         self.state['balance'] = next_balance
 
-        #then advances to the next state
+        # then advances to the next state
         next_date_pointer = [date - 1 for date in date_pointer]
         volume = []
         next_price = []
@@ -137,7 +140,7 @@ class StockEnv(gym.Env):
         self.state['price'] = next_price
         self.state['volume'] = volume
 
-        return self.state,action
+        return self.state, action
 
     def get_market_value(self, state):
         market_value = 0
@@ -150,7 +153,7 @@ class StockEnv(gym.Env):
         stock_date_index = []
         for ticker in self.tickers:
             stock_df = self.stock_data[ticker]
-            stock_date_index.append(stock_df[stock_df['timestamp']==date].index.values.astype(int)[0])
+            stock_date_index.append(stock_df[stock_df['timestamp'] == date].index.values.astype(int)[0])
         return stock_date_index
 
     def get_date_from_index(self, index):
@@ -178,46 +181,41 @@ class StockEnv(gym.Env):
             if action[i] > 0:
                 amount_gain += abs(action[i]) * self.state['price'][i]
 
-        #cannot spend more money than you have to buy stocks
+        # cannot spend more money than you have to buy stocks
         if amount_required > self.state['balance'] + amount_gain:
             valid_action = 3
             # print("invalid action 3")
 
         return valid_action
-    
+
     def clip_action(self, action):
 
         prices = self.state['price']
         holdings = self.state['holding']
         balance = self.state['balance']
-        validity_code = self.is_valid_action(action)
-        for i in range(len(action)):
-            if action[i] >= holdings[i]:
-                action[i] = holdings[i]
-        while (validity_code != 0):
-            if validity_code == 3:
-                action = np.where(action < 0, action * 0.8, action)
-                action = action.astype(np.int64)
-            elif validity_code == 2:
-                for i in range(len(self.tickers)):
-                    if holdings[i] < action[i]:
-                        action[i] = holdings[i]
-            validity_code = self.is_valid_action(action)
-
-
+        # validity_code = self.is_valid_action(action)
         # for i in range(len(action)):
         #     if action[i] >= holdings[i]:
         #         action[i] = holdings[i]
-        # total = -1*np.sum(action * prices)
-        # if total > balance:
-        #     ratio = balance/total
-        #     action = action.astype(np.float)
-        #     action *= ratio
-        #     for i in range(len(action)):
-        #         if action[i]>0:
-        #             action[i] = np.floor(action[i])
-        #         else:
-        #             action[i] = np.ceil(action[i])
+        # while (validity_code != 0):
+        #     if validity_code == 3:
+        #         action = np.where(action < 0, action * 0.8, action)
+        #         action = action.astype(np.int64)
+        #     elif validity_code == 2:
+        #         for i in range(len(self.tickers)):
+        #             if holdings[i] < action[i]:
+        #                 action[i] = holdings[i]
+        #     validity_code = self.is_valid_action(action)
+
+        for i in range(len(action)):
+            while action[i] > holdings[i]:
+                action[i] *= 0.8
+        total = -1 * np.sum(action * prices)
+        while total > balance:
+            for i in range(len(action)):
+                if action[i] < 0:
+                    action[i] *= 0.8
+            total = -1 * np.sum(action * prices)
         return action.astype(np.int)
         # # cut small amount transactions
         # for idx, _action in enumerate(action):
@@ -245,14 +243,11 @@ class StockEnv(gym.Env):
         # while(alpha * amount_delta + balance < 0):
         #     alpha -= 0.01
         # action = (alpha * action).astype(np.int64)
-        
-
-
 
         # buy_action = np.absolute(np.where(action<0, action, 0))
         # if sum(buy_action) != 0:
         #     buy_action = softmax(np.where(buy_action!=0, action, -1e10)) * -1
-        
+
         # sell_action = np.where(action>0, action, 0)
         # if sum(sell_action) != 0:
         #     sell_action = softmax(np.where(sell_action!=0, action, -1e10))
