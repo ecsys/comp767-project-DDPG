@@ -104,7 +104,7 @@ class StockEnv(gym.Env):
         balance = state['balance']
         for idx, price in enumerate(prices):
             # max_buy = math.floor(balance / price)
-            max_buy = 100
+            max_buy = 20
             max_sell = holdings[idx]
             action_space.append([-max_buy, max_sell])
         return np.array(action_space, dtype=np.int64)
@@ -208,8 +208,8 @@ class StockEnv(gym.Env):
         #     validity_code = self.is_valid_action(action)
 
         for i in range(len(action)):
-            while action[i] > holdings[i]:
-                action[i] *= 0.8
+            if action[i] > holdings[i]:
+                action[i] = holdings[i]
         total = -1 * np.sum(action * prices)
         while total > balance:
             for i in range(len(action)):

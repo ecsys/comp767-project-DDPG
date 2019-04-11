@@ -23,7 +23,7 @@ class Actor(nn.Module):
         h2 = self.linear2(self.relu(h1))
         h2 = self.relu(h2)
         # h2norm = self.bn2(h2)
-        out = self.linear3(h2)
+        out = self.tanh(self.linear3(h2))
         return out
 
 class Critic(nn.Module):

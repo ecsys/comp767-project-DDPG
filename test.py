@@ -22,7 +22,7 @@ agent = DDPG(env)
 noise = OUNoise(env.action_space)
 test_best_reward = -1e10
 
-create_memory(agent)
+# create_memory(agent)
 for eposide in range(100):
     state = env.reset()
     episode_reward = 0
@@ -33,9 +33,9 @@ for eposide in range(100):
         noise.set_action_space(env.action_space)
         action = agent.sample_action(state)
         action = noise.get_action(action=action, t=step_num)
-        action = np.array(action, dtype=np.int64)
-        new_state, reward, done, clipped_action = env.step(action)
-        agent.memory.push(state, clipped_action, reward, new_state, done)
+        # action = np.array(action, dtype=np.int64)
+        new_state, reward, done, clipped_action = env.step(np.array(10*action,dtype = np.int))
+        agent.memory.push(state, 0.1*clipped_action, reward, new_state, done)
         if agent.memory.check_full():
             agent.update(BATCH_SIZE)
         state = new_state

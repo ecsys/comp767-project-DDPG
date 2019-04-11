@@ -53,10 +53,10 @@ class DDPG:
         critic_loss = self.critic_loss(Qvals,y)
         policy_loss = -1*torch.mean(self.critic_net.forward(state_list,self.actor_net.forward(state_list)))
 
+        print(critic_loss,policy_loss)
         self.actor_optim.zero_grad()
         policy_loss.backward()
         self.actor_optim.step()
-
         self.critic_optim.zero_grad()
         critic_loss.backward()
         self.critic_optim.step()

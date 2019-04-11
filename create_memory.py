@@ -8,12 +8,10 @@ def create_action(state):
     price = state['price']
     holding = state['holding']
     balance = state['balance']
-    action = np.zeros(29)
-    for h in range(len(holding)):
-        if holding[h]>0:
-            action[h] = np.random.uniform(0,holding[h])
-        action[h] -= np.random.uniform(0,100)
-    return action.astype(np.int)
+    action = np.random.uniform(-1,1,29)
+    # for h in range(len(holding)):
+    #     action[h] = np.random.uniform(0,100)
+    return action
 
 
 def create_memory(agent):
