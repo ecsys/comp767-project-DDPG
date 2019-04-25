@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 class StockEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, start_date='2010-01-05', end_date='2015-01-02', 
-                 start_balance=10000, transaction_fee=0, threshold=0, scale=5):
+    def __init__(self, start_date='2009-01-02', end_date='2016-01-04', 
+                 start_balance=10000, transaction_fee=5, threshold=0, scale=5):
 
         # constant
         tickers = ["AXP", "AAPL", "BA", "CAT", "CSCO",
@@ -65,7 +65,7 @@ class StockEnv(gym.Env):
 
         if self.terminal:
             plt.plot(self.asset_list,'r')
-            plt.savefig('/home/ecsys/iteration_{}.png'.format(self.iteration))
+            plt.savefig('/home/ecsys/Documents/test/test/iteration_{}.png'.format(self.iteration))
             plt.close()
             print("total_reward:{}".format(self.get_market_value(self.state)- 10000))
             self.iteration += 1
@@ -112,7 +112,7 @@ class StockEnv(gym.Env):
     def render(self, mode='human'):
         return self.state
 
-    def _seed(self, seed=None):
+    def _seed(self, seed=1):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
@@ -142,8 +142,8 @@ class StockEnv(gym.Env):
             action_idx = argsort_buy.index(i)
             max_buy = -np.floor(self.state[0] / self.state[action_idx+1])
             action_ = max(buy_action[action_idx], max_buy)
-            self.state[1+self.n_stock+idx] -= action_
-            self.state[0] += action_ * self.state[1+idx]
+            self.state[1+self.n_stock+action_idx] -= action_
+            self.state[0] += action_ * self.state[1+action_idx]
 
         # then advances price and volume to the next state
         date_pointer = list(self.date_pointer)
