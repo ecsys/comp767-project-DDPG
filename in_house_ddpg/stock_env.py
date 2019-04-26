@@ -21,7 +21,7 @@ class StockEnv(gym.Env):
                    "PFE", "PG", "TRV", "UNH", "UTX",
                    "VZ", "WBA", "WMT", "DIS"]
 
-        data_dir = 'data/'
+        data_dir = '../data/'
 
         self.start_date = start_date
         self.end_date = end_date
