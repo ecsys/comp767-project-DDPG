@@ -16,7 +16,7 @@ def test_actor(start_date, end_date, agent):
     print('Test: start date {}, end-date {}, reward: {}'.format(start_date, end_date, total_reward))
     return total_reward
 
-env = StockEnv(end_date='2017-04-03')
+env = StockEnv()
 rewards = []
 agent = DDPG(env)
 noise = OUNoise(env.action_space)
@@ -45,7 +45,7 @@ for eposide in range(100):
         if done:
             print('eposide: {}, reward: {}'.format(eposide, episode_reward))
             break
-    test_reward = test_actor('2017-04-03', '2019-04-01', agent)
+    test_reward = test_actor('2016-01-04', '2018-09-20', agent)
     rewards.append(episode_reward)
     if test_reward > test_best_reward:
         test_best_reward = test_reward

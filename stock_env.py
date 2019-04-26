@@ -10,7 +10,7 @@ from gym.utils import seeding
 
 class StockEnv(gym.Env):
 
-    def __init__(self, start_date='2000-01-03', end_date='2015-01-02', start_balance=100000, transaction_fee=0,
+    def __init__(self, start_date='2009-01-02', end_date='2016-01-04', start_balance=10000, transaction_fee=0,
                  threshold=0):
 
         # constant
@@ -193,19 +193,6 @@ class StockEnv(gym.Env):
         prices = self.state['price']
         holdings = self.state['holding']
         balance = self.state['balance']
-        # validity_code = self.is_valid_action(action)
-        # for i in range(len(action)):
-        #     if action[i] >= holdings[i]:
-        #         action[i] = holdings[i]
-        # while (validity_code != 0):
-        #     if validity_code == 3:
-        #         action = np.where(action < 0, action * 0.8, action)
-        #         action = action.astype(np.int64)
-        #     elif validity_code == 2:
-        #         for i in range(len(self.tickers)):
-        #             if holdings[i] < action[i]:
-        #                 action[i] = holdings[i]
-        #     validity_code = self.is_valid_action(action)
 
         for i in range(len(action)):
             if action[i] > holdings[i]:
@@ -217,44 +204,4 @@ class StockEnv(gym.Env):
                     action[i] *= 0.8
             total = -1 * np.sum(action * prices)
         return action.astype(np.int)
-        # # cut small amount transactions
-        # for idx, _action in enumerate(action):
-        #     if _action == holdings[idx]:
-        #         continue
-        # 
-        # validity_code = self.is_valid_action(action)
-        # if  validity_code== 0:
-        #     return action
-        # 
-        # while (validity_code != 0):
-        #     if validity_code == 3:
-        #         action = np.where(action<0, action*0.9, action)
-        #         action = action.astype(np.int64)
-        #     elif validity_code == 2:
-        #         for i in range(len(self.tickers)):
-        #             if holdings[i] < action[i]:
-        #                 action[i] = holdings[i]
-        #     validity_code = self.is_valid_action(action)
-        # 
-        # amount_delta = 0
-        # for idx, _action in enumerate(action):
-        #     amount_delta += _action * prices[idx]
-        # alpha = 1
-        # while(alpha * amount_delta + balance < 0):
-        #     alpha -= 0.01
-        # action = (alpha * action).astype(np.int64)
 
-        # buy_action = np.absolute(np.where(action<0, action, 0))
-        # if sum(buy_action) != 0:
-        #     buy_action = softmax(np.where(buy_action!=0, action, -1e10)) * -1
-
-        # sell_action = np.where(action>0, action, 0)
-        # if sum(sell_action) != 0:
-        #     sell_action = softmax(np.where(sell_action!=0, action, -1e10))
-        # action = buy_action + sell_action
-
-        # normalized_amount = np.absolute(action.T.dot(prices))
-        # alpha = balance/normalized_amount
-        # action = (action * alpha).astype(np.int64)
-
-        # return action

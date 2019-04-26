@@ -1,6 +1,0 @@
-setup.py
-gym_stock.egg-info/PKG-INFO
-gym_stock.egg-info/SOURCES.txt
-gym_stock.egg-info/dependency_links.txt
-gym_stock.egg-info/requires.txt
-gym_stock.egg-info/top_level.txt
