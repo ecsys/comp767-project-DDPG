@@ -17,9 +17,10 @@ def test_actor(start_date, end_date, agent):
     return total_reward
 
 env = StockEnv()
+env = StockEnv(start_date='2010-01-05', end_date='2017-04-03', start_balance=10000)
 rewards = []
 agent = DDPG(env)
-noise = OUNoise(env.action_space)
+noise = OUNoise(env.action_space, decay_period=1500)
 test_best_reward = -1e10
 
 # create_memory(agent)
@@ -30,21 +31,20 @@ for eposide in range(100):
     step_num = 0
     while not done:
         step_num += 1
-        noise.set_action_space(env.action_space)
         action = agent.sample_action(state)
-        action = noise.get_action(action=action, t=step_num)
-        # action = np.array(action, dtype=np.int64)
-        new_state, reward, done, clipped_action = env.step(np.array(10*action,dtype = np.int))
-        agent.memory.push(state, 0.1*clipped_action, reward, new_state, done)
+        noise_action = noise.get_action(action=action, t=step_num)
+        new_state, reward, done, clipped_action = env.step(np.array(noise_action, dtype=np.int))
+        agent.memory.push(state, noise_action, reward, new_state, done)
         if agent.memory.check_full():
             agent.update(BATCH_SIZE)
         state = new_state
         episode_reward += reward
-        if step_num % 500 == 0:
+        if agent.memory.check_full() and step_num % 500 == 0:
             print('eposide: {}, step: {}, reward: {}'.format(eposide, step_num, episode_reward))
         if done:
             print('eposide: {}, reward: {}'.format(eposide, episode_reward))
             break
+
     test_reward = test_actor('2016-01-04', '2018-09-20', agent)
     rewards.append(episode_reward)
     if test_reward > test_best_reward:

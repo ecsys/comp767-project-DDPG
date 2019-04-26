@@ -23,29 +23,50 @@ class DDPG:
         self.memory = Memory(memory_size)
 
     def sample_action(self, state):
-        state = np.concatenate([state['price'],state['holding'],state['volume'],[state['balance']]])
-        state = torch.from_numpy(state).float().unsqueeze(0)
+        self.actor_net.eval()
+        state = np.concatenate([state['price'],state['holding'],[state['balance']]])
+        state = torch.from_numpy(state).float()
+
+        state[:29] = state[:29] / max(state[:29])
+        state[29:-1] = state[29:-1] / (max(state[29:-1]) + 1e-10)
+        state[-1] = state[-1] / 10000
+        state = state.unsqueeze(0)
+
         action = self.actor_net.forward(state)
         action = action.data.numpy()[0]
-
         return action
 
+    def normalize_state(self, state):
+        state[:, :29] = state[:, :29] / np.max(state[:, :29], axis=1).reshape(-1, 1)
+        state[:, 29:-1] = state[:, 29:-1] / (np.max(state[:, 29:-1], axis=1).reshape(-1, 1) + 1e-10)
+        state[:, -1] = state[:, -1] / 10000
+        return state
+
     def update(self, batch_size=BATCH_SIZE):
+        self.actor_net.train()
+        self.critic_net.train()
+
         state_list, action_list, reward_list, next_state_list, done_list = self.memory.sample(batch_size)
+
         states = []
         for state in state_list:
-            s = np.concatenate([state['price'],state['holding'],state['volume'],[state['balance']]])
+            s = np.concatenate([state['price'], state['holding'], [state['balance']]])
             states.append(s)
         state_list = np.array(states)
         next_states = []
         for next_state in next_state_list:
-            s = np.concatenate([next_state['price'], next_state['holding'], next_state['volume'],[next_state['balance']]])
+            s = np.concatenate([next_state['price'], next_state['holding'], [next_state['balance']]])
             next_states.append(s)
         next_state_list = np.array(next_states)
+
+        state_list = self.normalize_state(state_list)
+        next_state_list = self.normalize_state(next_state_list)
+        
         action_list = torch.FloatTensor(action_list)
         reward_list = torch.FloatTensor(reward_list)
         state_list = torch.FloatTensor(state_list)
         next_state_list = torch.FloatTensor(next_state_list)
+
         Qvals = self.critic_net.forward(state_list,action_list)
         next_actions = self.target_actor.forward(next_state_list)
         next_Qvals = self.target_critic.forward(next_state_list,next_actions)
@@ -56,9 +77,12 @@ class DDPG:
         self.actor_optim.zero_grad()
         policy_loss.backward()
         self.actor_optim.step()
+
         self.critic_optim.zero_grad()
+        critic_loss = self.critic_loss(Qvals, y)
         critic_loss.backward()
         self.critic_optim.step()
+
 
         for target_param, param in zip(self.target_actor.parameters(), self.actor_net.parameters()):
             target_param.data.copy_(param.data * self.tau + target_param.data * (1.0 - self.tau))

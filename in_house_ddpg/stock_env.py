@@ -38,29 +38,25 @@ class StockEnv(gym.Env):
         # initialize state, action, and date indices
         self.state = {'price': np.zeros(self.n_stock),
                       'holding': np.zeros(self.n_stock, dtype=np.int64),
-                      'volume': np.zeros(self.n_stock),
+                    #   'volume': np.zeros(self.n_stock),
                       'balance': 0}
 
         self.action = np.zeros(self.n_stock)  # selling quantity
-        self.action_space = np.zeros((self.n_stock, 2))
-        self.state_space_size = self.n_stock * 3 + 1
-        # self.state_space = np.zeros((self.n_stock,3))
-        # TODO state space: for price holding balance -inf to inf??
+        self.action_space = np.stack([np.array([-5, 5]) for i in range(self.n_stock)])
+        self.state_space_size = self.n_stock * 2 + 1
+
         self.date_pointer = []
         self.done = False
         self.reset()
 
     def step(self, action):
-        # if self.is_valid_action(action) != 0:
-        #     action = self.clip_action(action)
+        
+        self.action = np.round(action)
 
         curr_total = self.get_market_value(self.state)
-        next_state, action = self.load_next_day_state(action)
-        self.action = action
+        next_state = self.load_next_day_state(action)
         next_total = self.get_market_value(next_state)
         reward = next_total - curr_total
-
-        self.action_space = self.get_action_space(next_state)
 
         # move one day forward
         self.date_pointer = [date - 1 for date in self.date_pointer]
@@ -89,25 +85,14 @@ class StockEnv(gym.Env):
         self.state['price'] = np.array(prices)
         self.state['holding'] = np.zeros(self.n_stock, dtype=np.int64)
         self.state['balance'] = self.start_balance
-        self.state['volume'] = np.zeros(self.n_stock, dtype=np.int64)
+        # self.state['volume'] = np.zeros(self.n_stock, dtype=np.int64)
         self.action = np.zeros(self.n_stock)
-        self.action_space = self.get_action_space(self.state)
+        self.action_space = np.stack([np.array([-5, 5]) for i in range(self.n_stock)])
+
         return self.state
 
     def render(self):
         pass
-
-    def get_action_space(self, state):
-        action_space = []
-        prices = state['price']
-        holdings = state['holding']
-        balance = state['balance']
-        for idx, price in enumerate(prices):
-            # max_buy = math.floor(balance / price)
-            max_buy = 20
-            max_sell = holdings[idx]
-            action_space.append([-max_buy, max_sell])
-        return np.array(action_space, dtype=np.int64)
 
     def load_data(self, data_dir, stocks):
         stock_data = {}
@@ -118,34 +103,37 @@ class StockEnv(gym.Env):
         return stock_data
 
     def load_next_day_state(self, action):
-        # first trade do the action,
-        action = self.clip_action(action)
-        next_holding = self.state['holding'] - action
-        next_balance = self.state['balance']
-        next_balance += np.sum(self.state['price'] * action)
-        date_pointer = list(self.date_pointer)
-        self.state['holding'] = next_holding
-        self.state['balance'] = next_balance
 
-        # then advances to the next state
+        for idx, action_ in enumerate(action):
+            max_buy = -np.floor(self.state['balance'] / self.state['price'][idx])
+            max_sell = self.state['holding'][idx]
+            if action_ > 0:
+                action_ = min(action_, max_sell)
+            else:
+                action_ = max(action_, max_buy)
+
+            # execute action
+            self.state['holding'][idx] -= action_
+            self.state['balance'] += action_ * self.state['price'][idx]
+
+        # then advances price and volume to the next state
+        date_pointer = list(self.date_pointer)
         next_date_pointer = [date - 1 for date in date_pointer]
         volume = []
         next_price = []
         for idx, ticker in enumerate(self.tickers):
             ticker_row_idx = next_date_pointer[idx]
             next_price.append(self.stock_data[ticker].iloc[ticker_row_idx]['open'])
-            volume.append(self.stock_data[ticker].iloc[ticker_row_idx]['volume'])
+            # volume.append(self.stock_data[ticker].iloc[ticker_row_idx]['volume'])
         next_price = np.array(next_price)
-        volume = np.array(volume)
+        # volume = np.array(volume)
         self.state['price'] = next_price
-        self.state['volume'] = volume
+        # self.state['volume'] = volume
 
-        return self.state, action
+        return self.state
 
     def get_market_value(self, state):
-        market_value = 0
-        for idx, holding_amt in enumerate(state['holding']):
-            market_value += holding_amt * state['price'][idx]
+        market_value = state['holding'].dot(state['price'])
         total = market_value + state['balance']
         return total
 
@@ -204,4 +192,3 @@ class StockEnv(gym.Env):
                     action[i] *= 0.8
             total = -1 * np.sum(action * prices)
         return action.astype(np.int)
-
