@@ -1,7 +1,6 @@
-* To enable the environment in Gym
+# To Run Our Own Implementation of DDPG
 
-- go to gym-stock/
-- run > `pip install -e .`
+* Go to in_house_ddpg
+* run `python test.py`
 
-* reference: [https://medium.com/@apoddar573/making-your-own-custom-environment-in-gym-c3b65ff8cdaa]
-
+# To Run Our Env with Baselines' DDPG
