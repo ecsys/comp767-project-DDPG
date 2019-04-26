@@ -20,7 +20,11 @@ pip install -e .
     2. Install the stock environment to gym
     
         2.1 Go to the directory of gym library (e.g. /home/user/anaconda3/envs/tensorflow/lib/python3.6/site-packages/gym)
-            2.1.1 Please note you need to change the hard-coded directories in stock/stock_env.py and stock/stock_testenv.py
+            2.1.1 Please note you need to change the hard-coded directories 
+                - in stock/stock_env.py 
+                    - change data path and the directory to save graph
+                - in stock/stock_testenv.py
+                    - change data path and the directory to save graph
         2.2 Copy folder stock/ from this folder to gym/env/
         2.3 Replace __init__.py in the gym/env/ with __init__.py in this folder
 
